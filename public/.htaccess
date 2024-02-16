@@ -1,0 +1,13 @@
+# Prevent people from looking directly into folders
+Options -Multiviews
+
+# Activates URL rewriting
+RewriteEngine On
+
+# Jika permintaan tidak sesuai dengan file atau folder yang ada
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-l
+
+# Atur permintaan lainnya ke file "index.php" di url
+RewriteRule ^(.*)$ index.php?url=$1 [L]

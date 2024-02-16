@@ -1,0 +1,11 @@
+{
+    "name": "h23-phpmvc/h23-phpmvc",
+    "description": "Simple Framework phpmvc by haris2303",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Haris"
+        }
+    ],
+    "require": {}
+}
