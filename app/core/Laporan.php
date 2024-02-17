@@ -87,7 +87,7 @@ class Laporan extends FPDF
             $this->Cell($w2, $h1, $item['Judul'], 1, 0);
             $this->Cell($w2, $h1, $item['TanggalPeminjaman'], 1, 0);
             $this->Cell($w2, $h1, $item['TanggalPengembalian'], 1, 0);
-            $this->Cell($w3, $h1, 'StatusPeminjaman', 1, 1);
+            $this->Cell($w3, $h1, $item['StatusPeminjaman'], 1, 1);
         }
         $this->SetFont('helvetica', 'B', 11);
         $this->Cell(2);
