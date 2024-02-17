@@ -14,7 +14,7 @@
             <div class="col-lg-4">
                 <!-- Card with an image on top -->
                 <div class="card">
-                    <img src="<?= BASEURL ?>/img/sampul/<?= $item['Sampul'] ?>" class="card-img-top" alt="Sampul" height="400">
+                    <img src="<?= BASEURL ?>/img/sampul/<?= $item['Sampul'] ?>" class="card-img-top object-fit-cover" alt="Sampul" height="400">
                     <div class="card-body">
                         <h5 class="card-title"><?= $item['Judul'] ?></h5>
                         <div class="text-secondary">

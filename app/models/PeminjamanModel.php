@@ -23,7 +23,7 @@ class PeminjamanModel extends BaseModel
 
     public function getBy($userId): array
     {
-        $this->selectData(kondisi: ['UserID =' => $userId]);
+        $this->selectData($this->view, kondisi: ['UserID =' => $userId]);
         return $this->fetchAll();
     }
 

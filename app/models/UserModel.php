@@ -111,4 +111,31 @@ class UserModel extends BaseModel
     {
         return $this->deleteData(['UserID' => $id]);
     }
+
+    public function updatePassword($data)
+    {
+        $passwordLama = $data['password_lama'];
+        $passwordBaru = $data['password_baru'];
+        $konfirmasiPassword = $data['password_konfirmasi'];
+
+        // ambil data user dari database
+        $this->selectData(kondisi: ['UserID =' => $_SESSION['user_id']]);
+        $row = $this->fetch();
+
+        // cek password lama dengan yang ada pada database
+        if(!password_verify($passwordLama, $row['Password'])) {
+            return 'Password lama salah!';
+        }
+
+        // cek konfirmasi password
+        if($passwordBaru !== $konfirmasiPassword) {
+            return 'Konfirmasi password salah!';
+        }
+
+        // hash passwrod
+        $passwordBaru = password_hash($passwordBaru, PASSWORD_DEFAULT);
+
+        // update password
+        return $this->updateData(['Password' => $passwordBaru], ['UserID' => $_SESSION['user_id']]);
+    }
 }

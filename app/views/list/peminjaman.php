@@ -33,7 +33,7 @@
                         <tbody>
                             <?php foreach ($data['data_peminjaman'] as $item) : ?>
                                 <tr>
-                                    <td><?= $item['BukuID'] ?></td>
+                                    <td><?= $item['Judul'] ?></td>
                                     <td><?= $item['TanggalPeminjaman'] ?></td>
                                     <td><?= $item['TanggalPengembalian'] ?></td>
                                     <td>
