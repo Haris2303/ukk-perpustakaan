@@ -18,7 +18,10 @@
                 <div class="card-body">
                     <div class="d-flex mb-2 justify-content-between align-items-center">
                         <h5 class="card-title">Data Peminjaman</h5>
-                        <a href="<?= BASEURL ?>/peminjaman/create" class="btn btn-primary">Tambah Peminjaman</a>
+                        <div>
+                            <a href="<?= BASEURL ?>/peminjaman/report" class="btn btn-secondary text-light" target="_blank"><i class="bi bi-filetype-pdf"></i> Generate Laporan</a>
+                            <a href="<?= BASEURL ?>/peminjaman/create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Peminjaman</a>
+                        </div>
                     </div>
 
                     <!-- Table with stripped rows -->
@@ -56,7 +59,7 @@
                                     <td>
                                         <form action="<?= BASEURL ?>/peminjaman/destroy" method="post" class="d-inline">
                                             <input type="hidden" name="id" value="<?= $item['PeminjamanID'] ?>">
-                                            <button type="submit" class="btn badge rounded-pill bg-danger">Hapus</button>
+                                            <button type="submit" class="btn badge rounded-pill bg-danger"><i class="bi bi-trash"></i> Hapus</button>
                                         </form>
                                     </td>
                                 </tr>

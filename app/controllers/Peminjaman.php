@@ -41,6 +41,16 @@ class Peminjaman extends Controller
         $this->view('template/footer', $data);
     }
 
+    public function report()
+    {
+        $data = [
+            'pdf' => new Laporan(),
+            'data_content' => $this->model('PeminjamanModel')->get()
+        ];
+
+        $this->view('peminjaman/laporan', $data);
+    }
+
     /*
     |-------------------------------------------------------
     |       AKSI

@@ -3,6 +3,7 @@
 class PeminjamanModel extends BaseModel
 {
     protected $table = 'peminjaman';
+    protected $view = 'view_peminjaman';
 
     private int $userId;
     private int $bukuId;
@@ -16,7 +17,7 @@ class PeminjamanModel extends BaseModel
 
     public function get(): array
     {
-        $this->selectData();
+        $this->selectData($this->view);
         return $this->fetchAll();
     }
 
