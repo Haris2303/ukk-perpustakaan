@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Feb 16, 2024 at 05:33 AM
+-- Generation Time: Feb 17, 2024 at 06:07 AM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -42,7 +42,8 @@ CREATE TABLE `buku` (
 
 INSERT INTO `buku` (`BukuID`, `Judul`, `Penulis`, `Penerbit`, `TahunTerbit`, `Sampul`) VALUES
 (12, 'test2', 'test', 'test', '2009', '65cdd643bc158.jpg'),
-(13, 'Naruto Shipudden', 'Masashi', 'Test Test', '2001', '65cecef41d01e.jpg');
+(13, 'Naruto Shipudden', 'Masashi', 'Test Test', '2001', '65cecef41d01e.jpg'),
+(14, 'Si Bolang', 'Ucup', 'Saha', '1999', '65d046e956b53.png');
 
 -- --------------------------------------------------------
 
@@ -62,7 +63,8 @@ CREATE TABLE `kategoribuku` (
 INSERT INTO `kategoribuku` (`KategoriID`, `NamaKategori`) VALUES
 (1, 'Komedi'),
 (3, 'Fisika'),
-(4, 'Science');
+(4, 'Science'),
+(5, 'MATEMATIKA');
 
 -- --------------------------------------------------------
 
@@ -83,7 +85,8 @@ CREATE TABLE `kategoribuku_relasi` (
 INSERT INTO `kategoribuku_relasi` (`KategoriBukuID`, `BukuID`, `KategoriID`) VALUES
 (4, 12, 1),
 (5, 12, 3),
-(20, 13, 4);
+(20, 13, 4),
+(21, 14, 1);
 
 -- --------------------------------------------------------
 
@@ -102,7 +105,7 @@ CREATE TABLE `koleksipribadi` (
 --
 
 INSERT INTO `koleksipribadi` (`KoleksiID`, `UserID`, `BukuID`) VALUES
-(6, 6, 12);
+(7, 6, 14);
 
 -- --------------------------------------------------------
 
@@ -125,7 +128,8 @@ CREATE TABLE `peminjaman` (
 
 INSERT INTO `peminjaman` (`PeminjamanID`, `UserID`, `BukuID`, `TanggalPeminjaman`, `TanggalPengembalian`, `StatusPeminjaman`) VALUES
 (2, 6, 12, '2024-02-16', '2024-02-17', 'dikembalikan'),
-(3, 6, 12, '2024-02-15', '2024-02-17', 'dipinjam');
+(3, 6, 12, '2024-02-15', '2024-02-17', 'dipinjam'),
+(4, 7, 12, '2024-02-05', '2024-02-23', 'dipinjam');
 
 -- --------------------------------------------------------
 
@@ -162,9 +166,10 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` (`UserID`, `Username`, `Password`, `Email`, `NamaLengkap`, `Alamat`, `Role`) VALUES
-(1, 'admin', '$2y$10$FmQ3DT7VEnyhbrEhBzcuHOpCmmHUnb4hCna9WbJVMp0Gq4/mV7peC', 'admin@localhost', 'Admin', 'Jalan Rusak', 'admin'),
+(1, 'admin', '$2y$10$qY/MnjMlJRor0J/WwZ0.AO/3cvlPdXG8XBWIiS97PzfLM9qEJWP5u', 'admin@localhost', 'Admin', 'Jalan Rusak', 'admin'),
 (5, 'otong', '$2y$10$I3OrdXtx9b6/Q8ejTWfDg.CDWI6jb1knZXx5M9Hun52gjuINB7V36', 'otong@localhost', 'Otong Surotong', 'Jalan Hiburan', 'petugas'),
-(6, 'bambang', '$2y$10$ZISLWit2I1kjEi/gz82O..byakrRu3lmuoRvlW1Wv8Ko41jSRAwaa', 'bambang@localhost', 'Bambang', 'Jalan Beng', 'peminjam');
+(6, 'bambang', '$2y$10$.s7sTTM0LySi9FjEcPHGbOo8qUsP3spoYKjpOt6HrilBCzhYJ6DYq', 'bambang@localhost', 'Bambang', 'Jalan Beng', 'peminjam'),
+(7, 'udin', '$2y$10$afuM0LiJEkDH2fiEevSeoeQZPt1Oklje7wBoSGM5.rgea8iST4JiK', 'udin@localhost', 'Udin', 'Jalan Santai', 'peminjam');
 
 -- --------------------------------------------------------
 
@@ -192,6 +197,23 @@ CREATE TABLE `view_koleksibuku` (
 ,`Penulis` varchar(255)
 ,`Sampul` varchar(100)
 ,`TahunTerbit` year
+,`UserID` int
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `view_peminjaman`
+-- (See below for the actual view)
+--
+CREATE TABLE `view_peminjaman` (
+`BukuID` int
+,`Judul` varchar(255)
+,`NamaLengkap` varchar(255)
+,`PeminjamanID` int
+,`StatusPeminjaman` enum('dipinjam','dikembalikan')
+,`TanggalPeminjaman` date
+,`TanggalPengembalian` date
 ,`UserID` int
 );
 
@@ -227,6 +249,15 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 DROP TABLE IF EXISTS `view_koleksibuku`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_koleksibuku`  AS SELECT `koleksipribadi`.`KoleksiID` AS `KoleksiID`, `koleksipribadi`.`UserID` AS `UserID`, `buku`.`BukuID` AS `BukuID`, `buku`.`Judul` AS `Judul`, `buku`.`Penulis` AS `Penulis`, `buku`.`Penerbit` AS `Penerbit`, `buku`.`TahunTerbit` AS `TahunTerbit`, `buku`.`Sampul` AS `Sampul` FROM (`buku` join `koleksipribadi` on((`buku`.`BukuID` = `koleksipribadi`.`BukuID`))) ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `view_peminjaman`
+--
+DROP TABLE IF EXISTS `view_peminjaman`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `view_peminjaman`  AS SELECT `peminjaman`.`PeminjamanID` AS `PeminjamanID`, `peminjaman`.`UserID` AS `UserID`, `peminjaman`.`BukuID` AS `BukuID`, `user`.`NamaLengkap` AS `NamaLengkap`, `buku`.`Judul` AS `Judul`, `peminjaman`.`TanggalPeminjaman` AS `TanggalPeminjaman`, `peminjaman`.`TanggalPengembalian` AS `TanggalPengembalian`, `peminjaman`.`StatusPeminjaman` AS `StatusPeminjaman` FROM ((`user` join `peminjaman` on((`user`.`UserID` = `peminjaman`.`UserID`))) join `buku` on((`buku`.`BukuID` = `peminjaman`.`BukuID`))) ;
 
 -- --------------------------------------------------------
 
@@ -299,31 +330,31 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT for table `buku`
 --
 ALTER TABLE `buku`
-  MODIFY `BukuID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `BukuID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `kategoribuku`
 --
 ALTER TABLE `kategoribuku`
-  MODIFY `KategoriID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `KategoriID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `kategoribuku_relasi`
 --
 ALTER TABLE `kategoribuku_relasi`
-  MODIFY `KategoriBukuID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `KategoriBukuID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `koleksipribadi`
 --
 ALTER TABLE `koleksipribadi`
-  MODIFY `KoleksiID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `KoleksiID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `peminjaman`
 --
 ALTER TABLE `peminjaman`
-  MODIFY `PeminjamanID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `PeminjamanID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `ulasanbuku`
@@ -335,7 +366,7 @@ ALTER TABLE `ulasanbuku`
 -- AUTO_INCREMENT for table `user`
 --
 ALTER TABLE `user`
-  MODIFY `UserID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `UserID` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
