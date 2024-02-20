@@ -1,36 +1,28 @@
 <?php
 
-class KategoriRelasiModel extends BaseModel
+class KategoriRelasiModel extends DBMysqli
 {
     protected $table = 'kategoribuku_relasi';
     protected $view = 'view_kategoribuku';
-    
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     public function get()
     {
-        $this->selectData($this->view, orderBy: ['NamaKategori' => 'ASC']);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->view ORDER BY NamaKategori ASC");
     }
 
     public function getByBukuId($id)
     {
-        $this->selectData($this->view, kondisi: ['BukuID =' => $id]);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->view WHERE BukuID = $id");
     }
 
     public function create($bukuId, $kategoriId)
     {
-        return $this->insertData([
-            'BukuID' => $bukuId,
-            'KategoriID' => $kategoriId
-        ]);
+        mysqli_query($this->conn, "INSERT INTO $this->table VALUES(NULL, $bukuId, $kategoriId)");
+        return mysqli_affected_rows($this->conn);
     }
 
     public function delete($bukuId) {
-        return $this->deleteData(['BukuID' => $bukuId]);
+        mysqli_query($this->conn, "DELETE FROM $this->table WHERE BukuID = $bukuId");
+        return mysqli_affected_rows($this->conn);
     }
 } 

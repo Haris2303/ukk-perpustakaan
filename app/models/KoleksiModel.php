@@ -1,37 +1,29 @@
 <?php
 
-class KoleksiModel extends BaseModel
+class KoleksiModel extends DBMysqli
 {
     protected $table = 'koleksipribadi';
     protected $view = 'view_koleksibuku';
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function getBy($userId): array
     {
-        $this->selectData(kondisi: ['UserID =' => $userId]);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->table WHERE UserID = $userId");
     }
 
     public function getViewBy($userId): array
     {
-        $this->selectData($this->view, kondisi: ['UserID =' => $userId]);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->view WHERE UserID = $userId");
     }
 
     public function create($userId, $bukuId)
     {
-        return $this->insertData([
-            'UserID' => $userId,
-            'BukuID' => $bukuId
-        ]);
+        mysqli_query($this->conn, "INSERT INTO $this->table VALUES(NULL, $userId, $bukuId)");
+        return mysqli_affected_rows($this->conn);
     }
 
     public function delete($id)
     {
-        return $this->deleteData(['KoleksiID' => $id]);
+        mysqli_query($this->conn, "DELETE FROM $this->table WHERE KoleksiID = $id");
+        return mysqli_affected_rows($this->conn);
     }
 }

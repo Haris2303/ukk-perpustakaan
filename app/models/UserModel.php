@@ -1,30 +1,24 @@
 <?php
 
-class UserModel extends BaseModel
+class UserModel extends DBMysqli
 {
     protected $table = 'user';
 
+    private int $id;
     private string $username;
     private string $password;
     private string $email;
     private string $namalengkap;
     private string $alamat;
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function get(string $role): array
     {
-        $this->selectData(kondisi: ['Role =' => $role]);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->table WHERE Role = '$role'");
     }
 
     public function getById(int $id): array
     {
-        $this->selectData(kondisi: ['UserID =' => $id]);
-        return $this->fetch();
+        return $this->query("SELECT * FROM $this->table WHERE UserID = $id")[0];
     }
 
     public function login($data): int|string
@@ -34,8 +28,7 @@ class UserModel extends BaseModel
         $this->password = $data['password'];
 
         // ambil data
-        $this->selectData(kondisi: ['Username =' => $data['username']]);
-        $row = $this->fetch();
+        $row = $this->query("SELECT * FROM $this->table WHERE Username = '$this->username'")[0];
 
         // cek username
         if (is_array($row)) {
@@ -67,24 +60,29 @@ class UserModel extends BaseModel
         $this->username = strtolower($this->username);
 
         // cek username
-        if ($this->isData(["Username" => $this->username])) return 'Username sudah terdaftar!';
+        $result = $this->query("SELECT * FROM $this->table WHERE Username = '$this->username'")[0];
+        if (is_array($result)) return 'Username sudah terdaftar!';
 
         // cek panjang password apakah lebih dari 8 karakter
         if (strlen($this->password < 8)) return 'Password Terlalu Lemah!';
 
         // cek password konfirmasi
         if ($this->password == $data['konfirmasi_password']) {
-            // insert data user
-            $data = [
-                "Username" => htmlspecialchars($this->username),
-                "Password" => password_hash($this->password, PASSWORD_DEFAULT),
-                "Email" => $this->email,
-                "NamaLengkap" => $this->namalengkap,
-                "Alamat" => $this->alamat,
-                "Role" => $role
-            ];
+            // enkripsi password
+            $this->password = password_hash($this->password, PASSWORD_DEFAULT);
 
-            return $this->insertData($data) ? 1 : 'Data user gagal register!';
+            // insert data user
+            mysqli_query($this->conn, "INSERT INTO $this->table VALUES(
+                NULL, 
+                '$this->username', 
+                '$this->password', 
+                '$this->email', 
+                '$this->namalengkap',
+                '$this->alamat',
+                '$role'
+            )");
+
+            return (mysqli_affected_rows($this->conn) > 0) ?? 'Data user gagal register!';
         }
 
         return 'Konfirmasi password tidak valid!';
@@ -96,20 +94,22 @@ class UserModel extends BaseModel
         $this->email = htmlspecialchars($data['email']);
         $this->namalengkap = htmlspecialchars($data['namalengkap']);
         $this->alamat = htmlspecialchars($data['alamat']);
+        $this->id = $data['id'];
 
         // insert data user
-        $dataUpdate = [
-            "Email" => $this->email,
-            "NamaLengkap" => $this->namalengkap,
-            "Alamat" => $this->alamat
-        ];
+        mysqli_query($this->conn, "UPDATE $this->table SET 
+            Email = '$this->email', 
+            NamaLengkap = '$this->namalengkap', 
+            Alamat = '$this->alamat' 
+            WHERE UserID = $this->id");
 
-        return $this->updateData($dataUpdate, ['UserID' => $data['id']]) ? 1 : 'Data Gagal Diubah!';
+        return (mysqli_affected_rows($this->conn) > 0) ?? 'Data Gagal Diubah!';
     }
 
     public function delete(int $id)
     {
-        return $this->deleteData(['UserID' => $id]);
+        mysqli_query($this->conn, "DELETE FROM $this->table WHERE UserID = $id");
+        return mysqli_affected_rows($this->conn);
     }
 
     public function updatePassword($data)
@@ -117,18 +117,18 @@ class UserModel extends BaseModel
         $passwordLama = $data['password_lama'];
         $passwordBaru = $data['password_baru'];
         $konfirmasiPassword = $data['password_konfirmasi'];
+        $this->id = $_SESSION['user_id'];
 
         // ambil data user dari database
-        $this->selectData(kondisi: ['UserID =' => $_SESSION['user_id']]);
-        $row = $this->fetch();
+        $row = $this->query("SELECT * FROM $this->table WHERE UserID = $this->id")[0];
 
         // cek password lama dengan yang ada pada database
-        if(!password_verify($passwordLama, $row['Password'])) {
+        if (!password_verify($passwordLama, $row['Password'])) {
             return 'Password lama salah!';
         }
 
         // cek konfirmasi password
-        if($passwordBaru !== $konfirmasiPassword) {
+        if ($passwordBaru !== $konfirmasiPassword) {
             return 'Konfirmasi password salah!';
         }
 
@@ -136,6 +136,8 @@ class UserModel extends BaseModel
         $passwordBaru = password_hash($passwordBaru, PASSWORD_DEFAULT);
 
         // update password
-        return $this->updateData(['Password' => $passwordBaru], ['UserID' => $_SESSION['user_id']]);
+        mysqli_query($this->conn, "UPDATE $this->table SET Password = '$passwordBaru' WHERE UserID = $this->id");
+
+        return mysqli_affected_rows($this->conn);
     }
 }

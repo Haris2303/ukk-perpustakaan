@@ -2,31 +2,25 @@
 
 require_once __DIR__ . '/KategoriRelasiModel.php';
 
-class BukuModel extends BaseModel
+class BukuModel extends DBMysqli
 {
     protected $table = 'buku';
 
+    protected int $id;
     protected string $judul;
     protected string $penulis;
     protected string $penerbit;
     protected string $tahunTerbit;
     protected $sampul;
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function get()
     {
-        $this->selectData();
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->table");
     }
 
     public function getBy($id): array
     {
-        $this->selectData(kondisi: ['BukuID =' => $id]);
-        return $this->fetch();
+        return $this->query("SELECT * FROM $this->table WHERE BukuID = $id")[0];
     }
 
     public function create($post, $files)
@@ -42,24 +36,26 @@ class BukuModel extends BaseModel
         }
 
         // cek apakah judul buku sudah tersedia
-        if ($this->isData(['Judul' => $this->judul])) {
+        $result = $this->query("SELECT Judul FROM $this->table WHERE Judul = '$this->judul'")[0];
+        if (is_array($result)) {
             return 'Judul buku sudah tersedia!';
         }
 
         // tambahkan data
-        $data = [
-            'Judul' => $this->judul,
-            'Penulis' => $this->penulis,
-            'Penerbit' => $this->penerbit,
-            'TahunTerbit' => $this->tahunTerbit,
-            'Sampul' => $this->sampul
-        ];
+        mysqli_query($this->conn, "INSERT INTO $this->table VALUES(
+            NULL, 
+            '$this->judul', 
+            '$this->penulis', 
+            '$this->penerbit', 
+            '$this->tahunTerbit', 
+            '$this->sampul'
+        )");
 
-        if ($this->insertData($data)) {
+        // jika record lebih dari 0
+        if (mysqli_affected_rows($this->conn) > 0) {
 
             // ambil data id buku dari judul
-            $this->selectData(kondisi: ['Judul =' => $this->judul]);
-            $data_buku = $this->fetch();
+            $data_buku = $this->query("SELECT BukuID FROM $this->table WHERE Judul = '$this->judul'")[0];
 
             // Tambahkan data kategori pada kategoribuku_relasi
             for ($i = 0; $i < count($post['kategori']); $i++) {
@@ -76,6 +72,7 @@ class BukuModel extends BaseModel
 
     public function update($post, $files)
     {
+        $this->id = $post['id'];
         $this->judul = $post['judul'];
         $this->penulis = $post['penulis'];
         $this->penerbit = $post['penerbit'];
@@ -89,22 +86,22 @@ class BukuModel extends BaseModel
         }
 
         // cek apakah judul buku sudah tersedia
-        if (!$this->isData(['Judul' => $this->judul])) {
-            if ($this->isData(['Judul' => $this->judul])) {
+        if ($post['judulLama'] !== $this->judul) {
+            $result = $this->query("SELECT Judul FROM $this->table WHERE Judul = '$this->judul'")[0];
+            if (is_array($result)) {
                 return 'Judul buku sudah tersedia!';
             }
         }
 
-        // tambahkan data
-        $data = [
-            'Judul' => $this->judul,
-            'Penulis' => $this->penulis,
-            'Penerbit' => $this->penerbit,
-            'TahunTerbit' => $this->tahunTerbit,
-            'Sampul' => $this->sampul
-        ];
-
-        $this->updateData($data, ['BukuID' => $post['id']]);
+        // update data
+        mysqli_query($this->conn, "UPDATE $this->table SET 
+            Judul = '$this->judul',
+            Penulis = '$this->penulis',
+            Penerbit = '$this->penerbit',
+            TahunTerbit = '$this->tahunTerbit',
+            Sampul = '$this->sampul'
+            WHERE BukuID = $this->id
+        ");
 
         // initial kategorirelasimodel
         $kategoriRelasiModel = new KategoriRelasiModel();
@@ -114,7 +111,7 @@ class BukuModel extends BaseModel
 
         // Tambahkan data kategori pada kategoribuku_relasi
         for ($i = 0; $i < count($post['kategori']); $i++) {
-            $kategoriRelasiModel->create($post['id'], (int)$post['kategori'][$i]);
+            $kategoriRelasiModel->create($this->id, (int)$post['kategori'][$i]);
         }
 
         return 1;
@@ -128,6 +125,13 @@ class BukuModel extends BaseModel
         // delete kategori relasi
         $kategoriRelasiModel->delete($id);
 
-        return $this->deleteData(['BukuID' => $id]);
+        // hapus sampul lama di local
+        $row = $this->query("SELECT Sampul FROM $this->table WHERE BukuID = $id")[0];
+        @unlink(LOCALE_URL . '/img/sampul/' . $row['Sampul']);
+
+        // delete data
+        mysqli_query($this->conn, "DELETE FROM $this->table WHERE BukuID = $id");
+        
+        return mysqli_affected_rows($this->conn);
     }
 }

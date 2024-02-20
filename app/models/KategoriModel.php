@@ -1,25 +1,20 @@
 <?php
 
-class KategoriModel extends BaseModel 
+class KategoriModel extends DBMysqli 
 {
     protected $table = 'kategoribuku';
-    protected string $namaKategori;
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
+    private int $id;
+    private string $namaKategori;
 
     public function get(): array
     {
-        $this->selectData(orderBy: ['NamaKategori' => 'ASC']);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->table ORDER BY NamaKategori ASC");
     }
 
     public function getBy($id): array
     {
-        $this->selectData(kondisi: ['KategoriID =' => $id]);
-        return $this->fetch();
+        return $this->query("SELECT * FROM $this->table WHERE KategoriID = $id")[0];
     }
 
     public function create($data)
@@ -27,33 +22,40 @@ class KategoriModel extends BaseModel
         $this->namaKategori = $data['namakategori'];
 
         // cek apakah kategori sudah di database
-        if($this->isData(['NamaKategori' => $this->namaKategori])) {
+        $result = $this->query("SELECT NamaKategori FROM $this->table WHERE NamaKategori = '$this->namaKategori'")[0];
+        if(is_array($result)) {
             return 'Data kategori telah tersedia!';
         }
 
         // tambahkan data
-        return $this->insertData([
-            'NamaKategori' => $this->namaKategori
-        ]) ? 1 : 'Data Gagal ditambahkan!';
+        mysqli_query($this->conn, "INSERT INTO $this->table VALUES(NULL, '$this->namaKategori')");
+
+        return (mysqli_affected_rows($this->conn) > 0) ?? 'Data Gagal ditambahkan!';
     }
 
     public function update($data)
     {
+        $this->id = $data['id'];
         $this->namaKategori = $data['namakategori'];
 
         // cek apakah kategori sudah di database
-        if($this->isData(['NamaKategori' => $this->namaKategori])) {
+        $result = $this->query("SELECT NamaKategori FROM $this->table WHERE NamaKategori = '$this->namaKategori'")[0];
+        if(is_array($result)) {
             return 'Data kategori telah tersedia!';
         }
 
         // update data
-        return $this->updateData([
-            'NamaKategori' => $this->namaKategori
-        ], ['KategoriID' => $data['id']]) ? 1 : 'Data Gagal diubah!';
+        mysqli_query($this->conn, "UPDATE $this->table SET 
+            NamaKategori = '$this->namaKategori' 
+            WHERE KategoriID = '$this->id'
+        ");
+
+        return (mysqli_affected_rows($this->conn) > 0) ?? 'Data Gagal diubah!';
     }
 
     public function delete($id)
     {
-        return $this->deleteData(['KategoriID' => $id]);
+        mysqli_query($this->conn, "DELETE FROM $this->table WHERE KategoriID = $id");
+        return mysqli_affected_rows($this->conn);
     }
 }

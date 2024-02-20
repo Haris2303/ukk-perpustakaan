@@ -1,6 +1,6 @@
 <?php
 
-class PeminjamanModel extends BaseModel
+class PeminjamanModel extends DBMysqli
 {
     protected $table = 'peminjaman';
     protected $view = 'view_peminjaman';
@@ -10,21 +10,14 @@ class PeminjamanModel extends BaseModel
     private string $tanggalPeminjaman;
     private string $tanggalPengembalian;
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     public function get(): array
     {
-        $this->selectData($this->view);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->view");
     }
 
     public function getBy($userId): array
     {
-        $this->selectData($this->view, kondisi: ['UserID =' => $userId]);
-        return $this->fetchAll();
+        return $this->query("SELECT * FROM $this->view WHERE UserID = $userId");
     }
 
     public function create($data)
@@ -36,26 +29,27 @@ class PeminjamanModel extends BaseModel
         $this->tanggalPengembalian = $data['tanggal_pengembalian'];
 
         // tambahkan data
-        $data = [
-            'UserID' => $this->userId,
-            'BukuID' => $this->bukuId,
-            'TanggalPeminjaman' => $this->tanggalPeminjaman,
-            'TanggalPengembalian' => $this->tanggalPengembalian,
-            'StatusPeminjaman' => 'dipinjam'
-        ];
+        mysqli_query($this->conn, "INSERT INTO $this->table VALUES(
+            NULL, 
+            '$this->userId',
+            '$this->bukuId',
+            '$this->tanggalPeminjaman',
+            '$this->tanggalPengembalian',
+            'dipinjam'
+        )");
 
-        return $this->insertData($data) ?? 'Data gagal ditambahkan!';
+        return (mysqli_affected_rows($this->conn)) ?? 'Data gagal ditambahkan!';
     }
     
     public function update($id)
     {
-        return $this->updateData([
-            'StatusPeminjaman' => 'dikembalikan'
-        ], ['PeminjamanID' => $id]);
+        mysqli_query($this->conn, "UPDATE $this->table SET StatusPeminjaman = 'dikembalikan' WHERE PeminjamanID = $id");
+        return mysqli_affected_rows($this->conn);
     }
 
     public function delete($id)
     {
-        return $this->deleteData(['PeminjamanID' => $id]);
+        mysqli_query($this->conn, "DELETE FROM $this->table WHERE PeminjamanID = $id");
+        return mysqli_affected_rows($this->conn);
     }
 }
